@@ -23,7 +23,7 @@
         "lint": "virmator lint fix",
         "start": "tsx src/hit-site.script.ts",
         "test": "virmator test node",
-        "test:all": "npm run compile && runstorm --names tests,spelling,format,docs,deps,lint \"npm run test\" \"npm run test:spelling\" \"npm run test:format\" \"npm run test:deps\" \"npm run test:lint\"",
+        "test:all": "npm run compile && runstorm --names tests,spelling,format,deps,lint \"npm run test\" \"npm run test:spelling\" \"npm run test:format\" \"npm run test:deps\" \"npm run test:lint\"",
         "test:deps": "virmator deps check",
         "test:format": "virmator format check",
         "test:lint": "virmator lint",
@@ -40,6 +40,7 @@
         "@augment-vir/common": "^31.73.2",
         "@browserbasehq/sdk": "^2.14.1",
         "@electrovir/rebrowser-playwright": "^1.61.1",
+        "cli-vir": "^1.0.3",
         "updating-secrets": "^1.3.0"
     },
     "devDependencies": {
