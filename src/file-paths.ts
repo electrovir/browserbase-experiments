@@ -6,6 +6,26 @@ export const repoDirPath = resolve(import.meta.dirname, '..');
 export const notCommittedDirPath = join(repoDirPath, '.not-committed');
 export const secretsJsonPath = join(notCommittedDirPath, 'secrets.json');
 export const playwrightUserDataDirPath = join(notCommittedDirPath, 'playwright-user-data');
+export const downloadsDirPath = join(notCommittedDirPath, 'downloads');
+
+/**
+ * Output path for a file captured by a runner (e.g. `playwright-tsconfig.json`,
+ * `browserbase-downloads.zip`).
+ */
+export function downloadOutputPath({
+    label,
+    fileName,
+}: Readonly<{label: string; fileName: string}>): string {
+    return join(downloadsDirPath, `${label}-${fileName}`);
+}
+
+/** Removes {@link downloadsDirPath} so each download run starts clean. */
+export async function deleteDownloads(): Promise<void> {
+    await rm(downloadsDirPath, {
+        recursive: true,
+        force: true,
+    });
+}
 
 /** Screenshot output path for a given runner label (e.g. `browserbase`, `bot-detect-playwright`). */
 export function screenshotPngPath(label: string): string {

@@ -10,6 +10,12 @@ export const viewportSize = {
 export type RunnerPage = Readonly<{
     page: Page;
     label: string;
+    /**
+     * Runs `trigger` (which must start a browser download) and persists the resulting file to disk,
+     * returning the saved path. Each runner persists differently: local Playwright saves the
+     * download directly, while Browserbase retrieves the file from remote session storage.
+     */
+    captureDownload: (trigger: () => Promise<void>) => Promise<string>;
 }>;
 
 /** Work to perform against a runner-provided {@link RunnerPage}. */

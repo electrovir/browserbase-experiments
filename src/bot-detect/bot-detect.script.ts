@@ -6,41 +6,31 @@ import {
     log,
     wrapPromiseInTimeout,
 } from '@augment-vir/common';
-import {parseArgs} from 'cli-vir';
-import {type PageTask} from './browser-runner.js';
-import {withBrowserbasePage} from './browserbase.js';
-import {deleteScreenshots, screenshotPngPath} from './file-paths.js';
-import {navigateAndScreenshot} from './navigate-and-screenshot.js';
-import {withPlaywrightPage} from './playwright.js';
-import {createSecretsClient} from './secrets.js';
+import {type PageTask} from '../browser-runner.js';
+import {withBrowserbasePage} from '../browserbase.js';
+import {deleteScreenshots, screenshotPngPath} from '../file-paths.js';
+import {navigateAndScreenshot} from '../navigate-and-screenshot.js';
+import {withPlaywrightPage} from '../playwright.js';
+import {createSecretsClient} from '../secrets.js';
+import {runBotDetector} from './bot-detect.js';
 
-async function main() {
-    const args = parseArgs(
-        process.argv,
-        {
-            url: {
-                position: 0,
-                required: true,
-                description: 'The URL to navigate to and screenshot.',
-            },
-        },
-        {
-            binName: undefined,
-            importMeta: import.meta,
-            commandDescription:
-                'Navigate to a URL through Browserbase and local Chromium and screenshot it.',
-        },
-    );
+// cspell:ignore deviceandbrowserinfo
+const areYouABotUrl = 'https://deviceandbrowserinfo.com/are_you_a_bot';
 
+async function runBotDetection() {
     await deleteScreenshots();
 
     const secretsClient = await createSecretsClient();
 
     const pageTask: PageTask<void> = async ({page, label}) => {
+        await runBotDetector({
+            page,
+            screenshotPngPath: screenshotPngPath(`rebrowser-${label}`),
+        });
         await navigateAndScreenshot({
             page,
-            url: args.url,
-            screenshotPngPath: screenshotPngPath(label),
+            url: areYouABotUrl,
+            screenshotPngPath: screenshotPngPath(`are-you-a-bot-${label}`),
         });
     };
 
@@ -73,7 +63,7 @@ try {
         {
             minutes: 5,
         },
-        main(),
+        runBotDetection(),
     );
     process.exit(0);
 } catch (error) {
