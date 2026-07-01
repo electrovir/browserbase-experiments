@@ -1,0 +1,21 @@
+# browserbase-experiments
+
+Experiments comparing automation/bot detection between a remote [Browserbase](https://browserbase.com)
+session and a local browser, both driven with
+[`@electrovir/rebrowser-playwright`](https://www.npmjs.com/package/@electrovir/rebrowser-playwright).
+Each script drives both runners and saves screenshots to `.not-committed/` for side-by-side
+comparison.
+
+## Setup
+
+1. Clone the repo
+2. `npm ci`
+3. Install Chrome: `npx playwright install chrome` (playwright will ask for sudo access).
+4. Save your Browserbase API key as `{"apiKey":"<insert-here>"}` in `.not-committed/secrets.json`.
+
+## Scripts
+
+-   test any URL: `npm start <url>`
+-   run bot detection: `npm run bot-detect`
+
+Screenshots for both are saved into `./.not-committed`.
