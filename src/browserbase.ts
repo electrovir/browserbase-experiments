@@ -31,13 +31,6 @@ export async function withBrowserbasePage<T>(
                        * later.
                        */
                       //   viewport: viewportSize,
-                      /**
-                       * Default-on features that inject scripts into every page and bypass CSP to
-                       * do so, which the detector's `bypassCsp` check flags. Disable them to keep
-                       * CSP enforced.
-                       */
-                      solveCaptchas: false,
-                      recordSession: false,
                   },
                   proxies: true,
               },
