@@ -7,6 +7,7 @@ export const notCommittedDirPath = join(repoDirPath, '.not-committed');
 export const secretsJsonPath = join(notCommittedDirPath, 'secrets.json');
 export const playwrightUserDataDirPath = join(notCommittedDirPath, 'playwright-user-data');
 export const downloadsDirPath = join(notCommittedDirPath, 'downloads');
+export const browserbaseContextIdPath = join(notCommittedDirPath, 'browserbase-context-id.txt');
 
 /**
  * Output path for a file captured by a runner (e.g. `playwright-tsconfig.json`,

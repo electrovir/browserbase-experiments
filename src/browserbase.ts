@@ -1,9 +1,10 @@
-import {assert} from '@augment-vir/assert';
+import {assert, assertWrap} from '@augment-vir/assert';
 import {log, wait} from '@augment-vir/common';
+import {readFileIfExists} from '@augment-vir/node';
 import Browserbase from '@browserbasehq/sdk';
 import {writeFile} from 'node:fs/promises';
 import {viewportSize, type PageTask} from './browser-runner.js';
-import {downloadOutputPath} from './file-paths.js';
+import {browserbaseContextIdPath, downloadOutputPath} from './file-paths.js';
 import {type SecretsClient} from './secrets.js';
 
 const freeTier = false as boolean;
@@ -77,6 +78,19 @@ async function fetchBrowserbaseDownload({
     return Buffer.from(await response.arrayBuffer());
 }
 
+async function getOrCreateBrowserbaseContextId(browserbase: Browserbase): Promise<string> {
+    const existingContextId = ((await readFileIfExists(browserbaseContextIdPath)) || '').trim();
+    if (existingContextId) {
+        log.faint(`Reusing Browserbase context: ${existingContextId}`);
+        return existingContextId;
+    }
+
+    const context = await browserbase.contexts.create({});
+    await writeFile(browserbaseContextIdPath, context.id);
+    log.faint(`Created Browserbase context: ${context.id}`);
+    return context.id;
+}
+
 export async function withBrowserbasePage<T>(
     secretsClient: Readonly<SecretsClient>,
     task: PageTask<T>,
@@ -85,6 +99,8 @@ export async function withBrowserbasePage<T>(
     const browserbase = new Browserbase({
         apiKey: secretsClient.get.apiKey,
     });
+
+    const contextId = freeTier ? undefined : await getOrCreateBrowserbaseContextId(browserbase);
 
     log.faint('Creating Browserbase session...');
     const session = await browserbase.sessions.create(
@@ -97,6 +113,13 @@ export async function withBrowserbasePage<T>(
                       os: 'mac',
                       verified: true,
                       ignoreCertificateErrors: false,
+                      context: {
+                          id: assertWrap.isDefined(
+                              contextId,
+                              'Browserbase context id was not resolved for a non-free-tier session.',
+                          ),
+                          persist: true,
+                      },
                       /**
                        * Browserbase ignores this when `verified: true` is set. We manually fix it
                        * later.
