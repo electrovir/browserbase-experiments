@@ -17,5 +17,6 @@ comparison.
 
 -   test any URL: `npm start <url>`
 -   run bot detection: `npm run bot-detect`
+-   verify session persistence: `npm run session-persist`
 
 Screenshots for both are saved into `./.not-committed`.
