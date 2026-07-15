@@ -11,9 +11,10 @@ import {
 import {randomUUID} from 'node:crypto';
 import {type PageTask} from '../browser-runner.js';
 import {withBrowserbasePage} from '../browserbase.js';
+import {deleteScreenshots} from '../file-paths.js';
 import {withPlaywrightPage} from '../playwright.js';
 import {createSecretsClient} from '../secrets.js';
-import {PersistenceMode, runPersistencePage, type PersistenceRunResult} from './session-persist.js';
+import {PersistenceMode, runFingerprintPage, type PersistenceRunResult} from './fingerprint.js';
 
 type RunTask = <Result>(task: PageTask<Result>) => Promise<Result>;
 
@@ -24,17 +25,18 @@ type RunnerOutcome = Readonly<{
 }>;
 
 /**
- * Drives the published persistence test page in one session (seed), then opens a completely
- * separate session (reusing the same persistent context/user-data-dir) and reads it back (verify).
+ * Drives the combined browser-tests page in one session (seed), then opens a completely separate
+ * session (reusing the same persistent context/user-data-dir) and reads it back (verify). The
+ * rebrowser and OS-fingerprint panels are captured in each session's screenshot.
  */
-async function checkPersistence({
+async function checkFingerprint({
     name,
     runTask,
 }: Readonly<{name: string; runTask: RunTask}>): Promise<PersistenceRunResult> {
     const marker = randomUUID();
     log.info(`[${name}] Seeding session state with marker ${marker}...`);
     await runTask(({page, label}) =>
-        runPersistencePage({
+        runFingerprintPage({
             page,
             label,
             mode: PersistenceMode.Seed,
@@ -53,7 +55,7 @@ async function checkPersistence({
 
     log.info(`[${name}] Verifying session state in a brand-new session...`);
     return await runTask(({page, label}) =>
-        runPersistencePage({
+        runFingerprintPage({
             page,
             label,
             mode: PersistenceMode.Verify,
@@ -82,6 +84,8 @@ function logSummary(outcomes: ReadonlyArray<RunnerOutcome>): void {
 }
 
 async function main() {
+    await deleteScreenshots();
+
     const secretsClient = await createSecretsClient();
 
     const runners: ReadonlyArray<Readonly<{name: string; runTask: RunTask}>> = [
@@ -99,7 +103,7 @@ async function main() {
         const outcomes = await awaitedBlockingMap(
             runners,
             async ({name, runTask}): Promise<RunnerOutcome> => {
-                const result = await checkPersistence({
+                const result = await checkFingerprint({
                     name,
                     runTask,
                 }).catch((error: unknown) => {
@@ -136,7 +140,7 @@ async function main() {
             throw combineErrors(errors);
         }
 
-        log.success('Session persistence comparison complete for every runner.');
+        log.success('Fingerprint comparison complete for every runner.');
     } finally {
         secretsClient.destroy();
     }
@@ -145,7 +149,7 @@ async function main() {
 try {
     await wrapPromiseInTimeout(
         {
-            minutes: 5,
+            minutes: 8,
         },
         main(),
     );

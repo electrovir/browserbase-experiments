@@ -28,7 +28,10 @@ export async function deleteDownloads(): Promise<void> {
     });
 }
 
-/** Screenshot output path for a given runner label (e.g. `browserbase`, `bot-detect-playwright`). */
+/**
+ * Screenshot output path for a given runner label (e.g. `browserbase`,
+ * `fingerprint-playwright-seed`).
+ */
 export function screenshotPngPath(label: string): string {
     return join(notCommittedDirPath, `${label}.png`);
 }
